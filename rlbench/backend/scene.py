@@ -528,4 +528,8 @@ class Scene(object):
         misc.update(_get_cam_data(self._cam_overhead, 'overhead_camera'))
         misc.update(_get_cam_data(self._cam_front, 'front_camera'))
         misc.update(_get_cam_data(self._cam_wrist, 'wrist_camera'))
+        if self._obs_config.with_scene_viz:
+            scene_viz = self._pyrep.get_scene_viz()
+            # noinspection PyProtectedMember
+            misc.update({'scene_viz': scene_viz._asdict()})
         return misc

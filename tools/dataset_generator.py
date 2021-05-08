@@ -38,9 +38,9 @@ flags.DEFINE_integer('variations', -1,
                      'Number of variations to collect per task. -1 for all.')
 
 
-def check_and_make(dir):
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+def check_and_make(dir_):
+    if not os.path.exists(dir_):
+        os.makedirs(dir_)
 
 
 def save_demo(demo, example_path):
@@ -196,6 +196,9 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     obs_config.wrist_camera.masks_as_one_channel = False
     obs_config.front_camera.masks_as_one_channel = False
 
+    # We want to save the scene meshes
+    obs_config.with_scene_viz = True
+
     if FLAGS.renderer == 'opengl':
         obs_config.right_shoulder_camera.render_mode = RenderMode.OPENGL
         obs_config.left_shoulder_camera.render_mode = RenderMode.OPENGL
@@ -316,18 +319,22 @@ def main(argv):
 
     check_and_make(FLAGS.save_path)
 
-    processes = [Process(
-        target=run, args=(
-            i, lock, task_index, variation_count, result_dict, file_lock,
-            tasks))
-        for i in range(FLAGS.processes)]
-    [t.start() for t in processes]
-    [t.join() for t in processes]
+    if FLAGS.processes == 1:
+        run(0, lock, task_index, variation_count, result_dict, file_lock, tasks)
+        print(result_dict[0])
+    else:
+        processes = [Process(
+            target=run, args=(
+                i, lock, task_index, variation_count, result_dict, file_lock,
+                tasks))
+            for i in range(FLAGS.processes)]
+        [t.start() for t in processes]
+        [t.join() for t in processes]
 
-    print('Data collection done!')
-    for i in range(FLAGS.processes):
-        print(result_dict[i])
+        print('Data collection done!')
+        for i in range(FLAGS.processes):
+            print(result_dict[i])
 
 
 if __name__ == '__main__':
-  app.run(main)
+    app.run(main)
