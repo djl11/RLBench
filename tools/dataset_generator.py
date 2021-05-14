@@ -196,7 +196,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     obs_config.wrist_camera.masks_as_one_channel = False
     obs_config.front_camera.masks_as_one_channel = False
 
-    # We want to save the scene meshes
+    # Whether we want to save the scene meshes
     obs_config.with_scene_viz = True
 
     if FLAGS.renderer == 'opengl':
@@ -209,7 +209,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     rlbench_env = Environment(
         action_mode=ActionMode(),
         obs_config=obs_config,
-        headless=True)
+        headless=False)
     rlbench_env.launch()
 
     task_env = None

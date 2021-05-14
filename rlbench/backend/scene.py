@@ -56,6 +56,8 @@ class Scene(object):
         self._initial_robot_state = (robot.arm.get_configuration_tree(),
                                      robot.gripper.get_configuration_tree())
 
+        self._prev_low_dim_state = None
+
         # Set camera properties from observation config
         self._set_camera_properties()
 
@@ -529,7 +531,16 @@ class Scene(object):
         misc.update(_get_cam_data(self._cam_front, 'front_camera'))
         misc.update(_get_cam_data(self._cam_wrist, 'wrist_camera'))
         if self._obs_config.with_scene_viz:
-            scene_viz = self._pyrep.get_scene_viz()
-            # noinspection PyProtectedMember
-            misc.update({'scene_viz': scene_viz._asdict()})
+            if self._prev_low_dim_state is None:
+                self._prev_low_dim_state = self._active_task.get_low_dim_state()
+                scene_viz = self._pyrep.get_scene_viz()
+                # noinspection PyProtectedMember
+                misc.update({'scene_viz': scene_viz._asdict()})
+            else:
+                new_low_dim_state = self._active_task.get_low_dim_state()
+                if not np.array_equal(new_low_dim_state, self._prev_low_dim_state):
+                    scene_viz = self._pyrep.get_scene_viz()
+                    # noinspection PyProtectedMember
+                    misc.update({'scene_viz': scene_viz._asdict()})
+                self._prev_low_dim_state = new_low_dim_state
         return misc
