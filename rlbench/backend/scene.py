@@ -533,14 +533,12 @@ class Scene(object):
         if self._obs_config.with_scene_viz:
             if self._prev_low_dim_state is None:
                 self._prev_low_dim_state = self._active_task.get_low_dim_state()
-                scene_viz = self._pyrep.get_scene_viz()
-                # noinspection PyProtectedMember
-                misc.update({'scene_viz': scene_viz._asdict()})
+                self._scene_viz = self._pyrep.get_scene_viz()
             else:
                 new_low_dim_state = self._active_task.get_low_dim_state()
                 if not np.array_equal(new_low_dim_state, self._prev_low_dim_state):
-                    scene_viz = self._pyrep.get_scene_viz()
-                    # noinspection PyProtectedMember
-                    misc.update({'scene_viz': scene_viz._asdict()})
+                    self._scene_viz = self._pyrep.get_scene_viz()
                 self._prev_low_dim_state = new_low_dim_state
+            # noinspection PyProtectedMember
+            misc.update({'scene_viz': self._scene_viz._asdict()})
         return misc
