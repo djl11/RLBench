@@ -56,7 +56,7 @@ class Scene(object):
         self._initial_robot_state = (robot.arm.get_configuration_tree(),
                                      robot.gripper.get_configuration_tree())
 
-        self._prev_low_dim_state = None
+        self._scene_viz = None
 
         # Set camera properties from observation config
         self._set_camera_properties()
@@ -88,6 +88,7 @@ class Scene(object):
         self._initial_task_pose = task.boundary_root().get_orientation()
         self._has_init_task = self._has_init_episode = False
         self._variation_index = 0
+        self._scene_viz = None
 
     def unload(self) -> None:
         """Clears the scene. i.e. removes all tasks. """
@@ -98,12 +99,14 @@ class Scene(object):
             self._active_task.unload()
         self._active_task = None
         self._variation_index = 0
+        self._scene_viz = None
 
     def init_task(self) -> None:
         self._active_task.init_task()
         self._initial_task_state = self._active_task.get_state()
         self._has_init_task = True
         self._variation_index = 0
+        self._scene_viz = None
 
     def init_episode(self, index: int, randomly_place: bool=True,
                      max_attempts: int = 5) -> List[str]:
@@ -136,6 +139,7 @@ class Scene(object):
         # Let objects come to rest
         [self._pyrep.step() for _ in range(STEPS_BEFORE_EPISODE_START)]
         self._has_init_episode = True
+        self._scene_viz = None
         return descriptions
 
     def reset(self) -> None:
@@ -157,6 +161,7 @@ class Scene(object):
             self._active_task.cleanup_()
             self._active_task.restore_state(self._initial_task_state)
         self._active_task.set_initial_objects_in_scene()
+        self._scene_viz = None
 
     def get_observation(self) -> Observation:
         tip = self._robot.arm.get_tip()
@@ -313,6 +318,7 @@ class Scene(object):
                  randomly_place: bool = True) -> Demo:
         """Returns a demo (list of observations)"""
 
+        self._scene_viz = None
         if not self._has_init_task:
             self.init_task()
         if not self._has_init_episode:
@@ -531,14 +537,12 @@ class Scene(object):
         misc.update(_get_cam_data(self._cam_front, 'front_camera'))
         misc.update(_get_cam_data(self._cam_wrist, 'wrist_camera'))
         if self._obs_config.with_scene_viz:
-            if self._prev_low_dim_state is None:
-                self._prev_low_dim_state = self._active_task.get_low_dim_state()
+            if self._scene_viz is None:
                 self._scene_viz = self._pyrep.get_scene_viz()
-            else:
-                new_low_dim_state = self._active_task.get_low_dim_state()
-                if not np.array_equal(new_low_dim_state, self._prev_low_dim_state):
-                    self._scene_viz = self._pyrep.get_scene_viz()
-                self._prev_low_dim_state = new_low_dim_state
+            shape_matrices = list()
+            for name in self._scene_viz.names:
+                shape = Shape(name.split('/')[0])
+                shape_matrices.append(shape.get_matrix())
             # noinspection PyProtectedMember
-            misc.update({'scene_viz': self._scene_viz._asdict()})
+            misc.update({'scene_viz': dict(**self._scene_viz._asdict(), shape_matrices=shape_matrices)})
         return misc

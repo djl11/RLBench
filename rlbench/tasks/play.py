@@ -117,7 +117,7 @@ class Play(Task):
             self._remove_out_of_scope_objects()
 
     def _get_combined_objects_mesh(self):
-        scene_viz = self.pyrep.get_scene_viz()
+        scene_viz = self.pyrep.get_scene_viz(world_frame=True)
         vertices_list = list()
         lengths_list = list()
         indices_list = list()
