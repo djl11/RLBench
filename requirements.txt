@@ -4,3 +4,4 @@ pyquaternion
 html-testRunner
 setuptools
 natsort
+trimesh
