@@ -197,7 +197,7 @@ def run(i, lock, task_index, variation_count, results, file_lock, tasks):
     obs_config.front_camera.masks_as_one_channel = False
 
     # Whether we want to save the scene meshes
-    obs_config.with_scene_viz = True
+    obs_config.with_scene_viz = False
 
     if FLAGS.renderer == 'opengl':
         obs_config.right_shoulder_camera.render_mode = RenderMode.OPENGL
